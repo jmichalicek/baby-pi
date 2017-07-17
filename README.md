@@ -57,3 +57,7 @@ to make the mouse cursor show up for easy use with keyboard and mouse for dev.
 # TODO
 
 * Give this a better name?
+* Try some slide out menus and multiple screens using dispmanx to layer
+  kivy over omxplayer:
+  http://codedesigner.de/articles/omxplayer-kivy-overlay/index.html
+  https://github.com/kivy/kivy/pull/4984
