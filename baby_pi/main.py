@@ -225,6 +225,13 @@ class MonitorUI(App):
         exit_button.bind(on_press=handle_exit_button)
         controls_layout_left.add_widget(exit_button)
 
+        record_to_pi = Button(text='Record to Monitor', size_hint_x=1, size_hint_y=None, height=100)
+        record_to_camera = Button(text='Record to Camera', size_hint_x=1, size_hint_y=None, height=100)
+        snapshot_stream = Button(text='Snapshot', size_hint_x=1, size_hint_y=None, height=100)
+        controls_layout_left.add_widget(record_to_pi)
+        controls_layout_left.add_widget(record_to_camera)
+        controls_layout_left.add_widget(snapshop_stream)
+
         zoom_in = Button(text='Zoom In', size_hint_x=1, size_hint_y=None, height=80)
         zoom_in.bind(on_press=self.press_zoom_in, on_release=self.release_zoom_in)
         controls_layout_right.add_widget(zoom_in)
