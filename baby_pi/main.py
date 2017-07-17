@@ -217,9 +217,9 @@ class MonitorUI(App):
     #    # TODO: Use the kivy KVL for this, not code.  It's getting gross.
 
         layout = TouchEventLayout(cols=3, rows=1, height=480, width=800)
-        controls_layout_left = GridLayout(cols=1, width=150, height=480,  size_hint_x=None, size_hint_y=None)
+        controls_layout_left = GridLayout(cols=1, width=187, height=480,  size_hint_x=None, size_hint_y=None)
         videos_layout = GridLayout(cols=1, width=426, height=480, size_hint_x=None, size_hint_y=None)
-        controls_layout_right = GridLayout(cols=1, width=150, height=480, size_hint_x=None, size_hint_y=None)
+        controls_layout_right = GridLayout(cols=1, width=187, height=480, size_hint_x=None, size_hint_y=None)
 
         exit_button = Button(text='Exit', size_hint_x=1, size_hint_y=None, height=100)
         exit_button.bind(on_press=handle_exit_button)
