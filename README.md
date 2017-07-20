@@ -34,9 +34,9 @@ pip install -r requirements.txt
 Add the following to ~/.kivy/config.ini
 
 [mouse]  
-mouse = mouse
-mtdev_%(name)s = probesysfs,provider=mtdev
-hid_%(name)s = probesysfs,provider=hidinput
+mouse = mouse  
+mtdev_%(name)s = probesysfs,provider=mtdev  
+hid_%(name)s = probesysfs,provider=hidinput  
 
 
 ## Development configuration
@@ -44,11 +44,11 @@ hid_%(name)s = probesysfs,provider=hidinput
 Add the following to ~/.kivy/config.ini
 
 [graphics]  
-show_cursor = 1
+show_cursor = 1  
 
 [modules]  
-touchring = show_cursor=true
-cursor =
+touchring = show_cursor=true  
+cursor =  
 
 
 The blank after the = in the modules section is correct.  Kivy appears
