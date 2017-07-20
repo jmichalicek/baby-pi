@@ -1,0 +1,14 @@
+# Example systemd unit file for starting babypi on boot
+# and having it show on the touchscreen.
+# Assumes use of pyenv with virtualenv, running as user `pi`, etc
+[Unit]
+Description=Baby Pi
+After=multi-user.target
+
+[Service]
+Type=idle
+Environment=HOME=/home/pi/
+ExecStart=/home/pi/.pyenv/versions/babymonitor/bin/python /home/pi/dev/babymonitor/baby_pi/main.py
+
+[Install]
+WantedBy=multi-user.target
