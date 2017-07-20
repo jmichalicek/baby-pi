@@ -33,6 +33,7 @@ pip install -r requirements.txt
 
 Add the following to ~/.kivy/config.ini
 
+[mouse]  
 mouse = mouse
 mtdev_%(name)s = probesysfs,provider=mtdev
 hid_%(name)s = probesysfs,provider=hidinput
@@ -42,10 +43,10 @@ hid_%(name)s = probesysfs,provider=hidinput
 
 Add the following to ~/.kivy/config.ini
 
-[graphics]
+[graphics]  
 show_cursor = 1
 
-[modules]
+[modules]  
 touchring = show_cursor=true
 cursor =
 
