@@ -102,7 +102,7 @@ class OmxAmcrestCamera(AmcrestCamera):
             pass
 
     def create_omx_player_process(self):
-        stream_url = self.camera.rtsp_url()
+        stream_url = self.camera.rtsp_url(channelno=1, typeno=1)
         self.omx_player = subprocess.Popen(['omxplayer', '--live', '--win', self.player_window_position, stream_url],
                                            stdin=subprocess.PIPE, universal_newlines=True)
 
