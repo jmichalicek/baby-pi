@@ -38,6 +38,40 @@ mouse = mouse
 mtdev_%(name)s = probesysfs,provider=mtdev  
 hid_%(name)s = probesysfs,provider=hidinput  
 
+## LXDE config, Screen blanking, etc.
+
+### screen blanking and touchscreen backlight power
+Depending on window manager (or lack thereof), etc. screen blanking is different
+and can seem inconsistent.  Currently I prefer to load into pixel/lxde as I have found
+this to be the most consistent.
+
+Currently I am allowing dpms in X to turn the display off.  This appears to be
+cutting power to the touchscreen backlight even though /sys/class/backlight/rpi_backlight/bl_power
+says the power is still on.  If I find I am wrong, I will just turn off dpms and let the babymonitor
+app manage the bl_power file itself.
+
+@lxpanel --profile LXDE  
+@pcmanfm --desktop --profile LXDE  
+#@xscreensaver -no-splash  
+@xset s off  
+@xset dpms 0 0 300  
+@xset s noblank  
+
+
+### LXDE desktop icon
+I added a desktop icon to LXDE by creating the file ~/Desktop/baby-pi.desktop with the following:
+
+[Desktop Entry]  
+Name=BabyPi  
+Type=Application  
+Comment=Run BabyPi  
+Categories=Application  
+Path=/home/pi/dev/babymonitor/baby_pi  
+Exec=/home/pi/.pyenv/versions/babymonitor/bin/python main.py  
+Terminal=false  
+StartupNotify=false  
+
+
 
 ## Development configuration
 
