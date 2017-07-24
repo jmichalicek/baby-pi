@@ -96,3 +96,6 @@ to make the mouse cursor show up for easy use with keyboard and mouse for dev.
   kivy over omxplayer:
   http://codedesigner.de/articles/omxplayer-kivy-overlay/index.html
   https://github.com/kivy/kivy/pull/4984
+* Possibly control omxplayer with dbus using python-omxplayer-wrapper.  There is a pull request
+  with work towards making use of the --dbus_name flag to allow control of multiple
+  omxplayer instances.  https://github.com/willprice/python-omxplayer-wrapper/pull/89
