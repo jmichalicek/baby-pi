@@ -26,6 +26,7 @@ from kivy.uix.widget import Widget
 from kivy.lang import Builder
 from kivy.core.window import Window
 
+import requests
 
 import logging
 
@@ -78,6 +79,7 @@ class OmxAmcrestCamera(AmcrestCamera):
         self.player_window_position = player_window_position
         self.omx_player = None
         self.name = name
+        self.audio_input_volume = kwargs.pop('audio_input_volume', 50) or 50
 
         super().__init__(*args, **kwargs)
 
@@ -105,6 +107,25 @@ class OmxAmcrestCamera(AmcrestCamera):
         stream_url = self.camera.rtsp_url(channelno=1, typeno=1)
         self.omx_player = subprocess.Popen(['omxplayer', '--live', '--win', self.player_window_position, stream_url],
                                            stdin=subprocess.PIPE, universal_newlines=True)
+
+    def set_audio_input_volume(self, level):
+        # This one camera control is one level higher in the object hierarchy than the rest because
+        # I don't feel like doing this the "right" way.
+        # The "right" way, staying within how the rest is implemented would be to
+        # 1. Make a new class or subclass a current one for audio control and add volume control there
+        # 2. subclass from amcrest.http.Http to have it subclass the correct class to get the audio controls
+        # 3. Completely skip over super().__init__() here so that my subclassed Http() can be used.
+        # or I can just make a PR against amcrest py and add it appropriately there once I see that this works.
+        # there are better ways to do this with requests, but I'm going to be lazy and make use of
+        # amcrest py's underlying auth, etc.
+        cmd = 'configManager.cgi?action=setConfig&AudioInputVolume=%s' % level
+        self.camera.command(cmd)
+        self.audio_input_volume = level
+        #r = requests.get(
+        #    '%s://%s/cgi-bin/configManager.cgi', % (self.protocol, self.host),
+        #    params={'action': 'setConfig', 'AudioInputVolume': level}
+        #)
+
 
 
 class TouchEventLayout(GridLayout):
@@ -205,6 +226,16 @@ class MonitorUI(App):
     def release_pan_right(self, instance):
         self.selected_camera.camera.move_right(action='stop')
 
+    def press_volume_up(self, instance):
+        camera = self.selected_camera
+        new_volume = camera.audio_input_volume + 2
+        camera.set_audio_input_volume(level=new_volume)
+
+    def press_volume_down(self, instance):
+        camera = self.selected_camera
+        new_volume = camera.audio_input_volume - 2
+        camera.set_audio_input_volume(level=new_volume)
+        
     def on_stop(self):
         for camera in self.cameras:
             camera.stop_omx_player()
@@ -228,8 +259,8 @@ class MonitorUI(App):
         record_to_pi = Button(text='Record to Monitor', size_hint_x=1, size_hint_y=None, height=80)
         record_to_camera = Button(text='Record to Camera', size_hint_x=1, size_hint_y=None, height=80)
         snapshot_stream = Button(text='Snapshot', size_hint_x=1, size_hint_y=None, height=80)
-        camera_volume_up = Button(text='Volume Up', size_hint_x=1, size_hint_y=None, height=80)
-        camera_volume_down = Button(text='Volume Down', size_hint_x=1, size_hint_y=None, height=80)
+        camera_volume_up = Button(text='Volume Up', size_hint_x=1, size_hint_y=None, height=80, on_press=self.press_volume_up)
+        camera_volume_down = Button(text='Volume Down', size_hint_x=1, size_hint_y=None, height=80, on_press=self.press_volume_down)
         controls_layout_left.add_widget(record_to_pi)
         controls_layout_left.add_widget(record_to_camera)
         controls_layout_left.add_widget(snapshot_stream)
