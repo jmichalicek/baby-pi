@@ -99,3 +99,26 @@ to make the mouse cursor show up for easy use with keyboard and mouse for dev.
 * Possibly control omxplayer with dbus using python-omxplayer-wrapper.  There is a pull request
   with work towards making use of the --dbus_name flag to allow control of multiple
   omxplayer instances.  https://github.com/willprice/python-omxplayer-wrapper/pull/89
+  
+ ### Audio volume control at the camera
+ example from docs: http://192.168.1.108/cgi-bin/configManager.cgi?action=setConfig&Snap[0].TimeSection[0][0]=1%201
+ Guess for audio volume based on inspecting http requests:
+ http://192.168.1.108/cgi-bin/configManager.cgi?action=setConfig&AudioInputVolume=50
+ example from docs: http://192.168.1.108/cgi-bin/configManager.cgi?action=setConfig&AudioInput[0].Volume=50
+ 
+  or post whole json blob as raw http post:
+ 
+ Content-Type "application/x-www-form-urlencoded; charset=UTF-8"
+ X-Requested-With "XMLHttpRequest"
+ {
+   "method":"system.multicall",
+   "params":[{
+     "method":"configManager.setConfig",
+     "params":{
+       "name":"AudioInputVolume",
+       "table":[50],
+       "options":[]
+     },
+     "id":201,
+     "session":44473856}       
+   ],"id":205,"session":44473856}
