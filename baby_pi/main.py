@@ -118,8 +118,8 @@ class OmxAmcrestCamera(AmcrestCamera):
         # or I can just make a PR against amcrest py and add it appropriately there once I see that this works.
         # there are better ways to do this with requests, but I'm going to be lazy and make use of
         # amcrest py's underlying auth, etc.
-        cmd = 'configManager.cgi?action=setConfig&AudioInputVolume=%s' % level
-        self.camera.command(cmd)
+        cmd = 'configManager.cgi?action=setConfig&AudioInputVolume[0]=%s' % level
+        #cmd = 'configManager.cgi?action=getConfig&name=AudioInputVolume'
         self.audio_input_volume = level
         #r = requests.get(
         #    '%s://%s/cgi-bin/configManager.cgi', % (self.protocol, self.host),
@@ -226,14 +226,26 @@ class MonitorUI(App):
     def release_pan_right(self, instance):
         self.selected_camera.camera.move_right(action='stop')
 
+    # TODO: change these to press/release handlers with .5 second or so intervals
+    # to allow for bigger volume change with just one command to the camera
+    # and figure out how to display volume on the screen
+    # and save the volume when done.
     def press_volume_up(self, instance):
         camera = self.selected_camera
-        new_volume = camera.audio_input_volume + 2
+        new_volume = camera.audio_input_volume
+        if new_volume + 5 <= 100:
+            new_volume += 5 
+        else:
+            new_volume = 100
         camera.set_audio_input_volume(level=new_volume)
 
     def press_volume_down(self, instance):
         camera = self.selected_camera
-        new_volume = camera.audio_input_volume - 2
+        new_volume = camera.audio_input_volume
+        if new_volume - 5 >= 0:
+            new_volume -= 5
+        else:
+            new_volume = 0
         camera.set_audio_input_volume(level=new_volume)
         
     def on_stop(self):
