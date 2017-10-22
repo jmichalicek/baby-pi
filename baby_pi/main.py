@@ -105,7 +105,7 @@ class OmxAmcrestCamera(AmcrestCamera):
 
     def create_omx_player_process(self):
         stream_url = self.camera.rtsp_url(channelno=1, typeno=1)
-        self.omx_player = subprocess.Popen(['omxplayer', '--live', '--win', self.player_window_position, stream_url],
+        self.omx_player = subprocess.Popen(['omxplayer','-o', 'alsa', '--live', '--win', self.player_window_position, stream_url],
                                            stdin=subprocess.PIPE, universal_newlines=True)
 
     def set_audio_input_volume(self, level):
