@@ -331,12 +331,21 @@ class MonitorUI(App):
         cameras = []
         for conf in self.camera_configs:
             position = conf.get('position')
-            camera = OmxAmcrestCamera(
-                    name=conf.get('name', 'Missing Name'),
-                    player_window_position=position, user=conf['user'], password=conf['password'], host=conf['host'],
-                    port=80, protocol='http')
-            camera.create_omx_player_process()
-            cameras.append(camera)
+            try:
+                camera = OmxAmcrestCamera(
+                        name=conf.get('name', 'Missing Name'),
+                        player_window_position=position, user=conf['user'], password=conf['password'], host=conf['host'],
+                        port=80, protocol='http')
+            except Exception as e:
+                logger.exception(e)
+                continue
+
+            try:
+                camera.create_omx_player_process()
+            except Exception as e:
+                logger.exception(e)
+            else:
+                cameras.append(camera)
 
         return cameras
 
