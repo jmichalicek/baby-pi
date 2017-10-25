@@ -4,7 +4,6 @@ import time
 import os
 import subprocess
 
-
 #kivy.require('1.10.0') # replace with your current kivy version !
 from kivy.config import Config
 Config.set('kivy', 'desktop', 1)
@@ -35,6 +34,7 @@ logger = logging.getLogger(__name__)
 # hard coding the UI for the raspberry pi 7" display which is 800x480
 DISPLAY_WIDTH = 800
 DISPLAY_HEIGHT = 480
+VOLUME_CONTROL = 'OMXPLAYER'  # kludgey feature flag for now
 
 def handle_exit_button(instance):
     App.get_running_app().stop()
@@ -105,10 +105,10 @@ class OmxAmcrestCamera(AmcrestCamera):
 
     def create_omx_player_process(self):
         stream_url = self.camera.rtsp_url(channelno=1, typeno=1)
-        self.omx_player = subprocess.Popen(['omxplayer', '--live', '--win', self.player_window_position, stream_url],
+        self.omx_player = subprocess.Popen(['omxplayer', '--fps', '60', '-o', 'alsa', '--live', '--win', self.player_window_position, stream_url],
                                            stdin=subprocess.PIPE, universal_newlines=True)
 
-    def set_audio_input_volume(self, level):
+    def set_audio_input_volume_camera(self, level):
         # This one camera control is one level higher in the object hierarchy than the rest because
         # I don't feel like doing this the "right" way.
         # The "right" way, staying within how the rest is implemented would be to
@@ -119,12 +119,20 @@ class OmxAmcrestCamera(AmcrestCamera):
         # there are better ways to do this with requests, but I'm going to be lazy and make use of
         # amcrest py's underlying auth, etc.
         cmd = 'configManager.cgi?action=setConfig&AudioInputVolume[0]=%s' % level
+        self.camera.command(cmd)
         #cmd = 'configManager.cgi?action=getConfig&name=AudioInputVolume'
         self.audio_input_volume = level
         #r = requests.get(
         #    '%s://%s/cgi-bin/configManager.cgi', % (self.protocol, self.host),
         #    params={'action': 'setConfig', 'AudioInputVolume': level}
         #)
+
+    def increase_omxplayer_volume(self):
+        self.omx_player.stdin.write('+')
+
+    def decrease_omxplayer_volume(self):
+        # Does not seem to be working consistently.
+        self.omx_player.stdin.write('-')
 
 
 
@@ -232,21 +240,28 @@ class MonitorUI(App):
     # and save the volume when done.
     def press_volume_up(self, instance):
         camera = self.selected_camera
-        new_volume = camera.audio_input_volume
-        if new_volume + 5 <= 100:
-            new_volume += 5 
+        if VOLUME_CONTROL == 'CAMERA':
+            new_volume = camera.audio_input_volume
+            if new_volume + 5 <= 100:
+                new_volume += 5 
+            else:
+                new_volume = 100
+            camera.set_audio_input_volume(level=new_volume)
+
         else:
-            new_volume = 100
-        camera.set_audio_input_volume(level=new_volume)
+            camera.increase_omxplayer_volume()
 
     def press_volume_down(self, instance):
         camera = self.selected_camera
-        new_volume = camera.audio_input_volume
-        if new_volume - 5 >= 0:
-            new_volume -= 5
+        if VOLUME_CONTROL == 'CAMERA':
+            new_volume = camera.audio_input_volume
+            if new_volume - 5 >= 0:
+                new_volume -= 5
+            else:
+                new_volume = 0
+            camera.set_audio_input_volume(level=new_volume)
         else:
-            new_volume = 0
-        camera.set_audio_input_volume(level=new_volume)
+            camera.decrease_omxplayer_volume()
         
     def on_stop(self):
         for camera in self.cameras:
@@ -316,12 +331,21 @@ class MonitorUI(App):
         cameras = []
         for conf in self.camera_configs:
             position = conf.get('position')
-            camera = OmxAmcrestCamera(
-                    name=conf.get('name', 'Missing Name'),
-                    player_window_position=position, user=conf['user'], password=conf['password'], host=conf['host'],
-                    port=80, protocol='http')
-            camera.create_omx_player_process()
-            cameras.append(camera)
+            try:
+                camera = OmxAmcrestCamera(
+                        name=conf.get('name', 'Missing Name'),
+                        player_window_position=position, user=conf['user'], password=conf['password'], host=conf['host'],
+                        port=80, protocol='http')
+            except Exception as e:
+                logger.exception(e)
+                continue
+
+            try:
+                camera.create_omx_player_process()
+            except Exception as e:
+                logger.exception(e)
+            else:
+                cameras.append(camera)
 
         return cameras
 
