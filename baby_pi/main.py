@@ -3,6 +3,7 @@ import json
 import time
 import os
 import subprocess
+import alsaaudio
 
 #kivy.require('1.10.0') # replace with your current kivy version !
 from kivy.config import Config
@@ -34,7 +35,13 @@ logger = logging.getLogger(__name__)
 # hard coding the UI for the raspberry pi 7" display which is 800x480
 DISPLAY_WIDTH = 800
 DISPLAY_HEIGHT = 480
-VOLUME_CONTROL = 'OMXPLAYER'  # kludgey feature flag for now
+
+class VolumeControl:
+    OMXPLAYER = 1
+    CAMERA = 2
+    ALSA = 3
+
+VOLUME_CONTROL = VolumeControl.ALSA  # kludgey feature flag for now
 
 def handle_exit_button(instance):
     App.get_running_app().stop()
@@ -139,6 +146,28 @@ class OmxAmcrestCamera(AmcrestCamera):
         # Does not seem to be working consistently.
         self.omx_player.stdin.write('-')
 
+    def get_alsa_mixer(*args, **kwargs):
+        """
+        Get the alsa mixer.  See if I can make this have different controls
+        per camera
+        """
+        return alsaaudio.Mixer('PCM')
+    
+    def increase_alsa_volume(self):
+        m = self.get_alsa_mixer()
+        vol = m.getvolume()[0]
+        if vol <= 95:
+            m.setvolume(vol + 5)
+        else:
+            m.setvolume(100)
+
+    def decrease_alsa_volume(self):
+        m = self.get_alsa_mixer()
+        vol = m.getvolume()[0]
+        if vol >= 5:
+            m.setvolume(vol - 5)
+        else:
+            m.setvolume(0)
 
 
 class TouchEventLayout(GridLayout):
@@ -245,7 +274,7 @@ class MonitorUI(App):
     # and save the volume when done.
     def press_volume_up(self, instance):
         camera = self.selected_camera
-        if VOLUME_CONTROL == 'CAMERA':
+        if VOLUME_CONTROL == VolumeControl.CAMERA:
             new_volume = camera.audio_input_volume
             if new_volume + 5 <= 100:
                 new_volume += 5 
@@ -253,20 +282,24 @@ class MonitorUI(App):
                 new_volume = 100
             camera.set_audio_input_volume(level=new_volume)
 
-        else:
+        elif VOLUME_CONTROL == VolumeControl.OMXPLAYER:
             camera.increase_omxplayer_volume()
+        elif VOLUME_CONTROL == VolumeControl.ALSA:
+            camera.increase_alsa_volume()
 
     def press_volume_down(self, instance):
         camera = self.selected_camera
-        if VOLUME_CONTROL == 'CAMERA':
+        if VOLUME_CONTROL == VolumeControl.CAMERA:
             new_volume = camera.audio_input_volume
             if new_volume - 5 >= 0:
                 new_volume -= 5
             else:
                 new_volume = 0
             camera.set_audio_input_volume(level=new_volume)
-        else:
+        elif VOLUME_CONTROL == VolumeControl.OMXPLAYER:
             camera.decrease_omxplayer_volume()
+        elif VOLUME_CONTROL == VolumeControl.ALSA:
+            camera.decrease_alsa_volume()
         
     def on_stop(self):
         for camera in self.cameras:
