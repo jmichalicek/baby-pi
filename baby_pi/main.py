@@ -108,7 +108,7 @@ class OmxAmcrestCamera(AmcrestCamera):
         try:
             self.omx_player.communicate(input='q', timeout=1)
         except ValueError as e:
-            print('Got ValueError! %s' % e)
+            logger.debug('Got ValueError! %s' % e)
             self.omx_player.terminate()
             pass
         except subprocess.TimeoutExpired as e:
@@ -117,7 +117,8 @@ class OmxAmcrestCamera(AmcrestCamera):
 
     def create_omx_player_process(self):
         stream_url = self.camera.rtsp_url(channelno=1, typeno=1)
-        self.omx_player = subprocess.Popen(['omxplayer', '--fps', '60', '-o', 'alsa', '--live', '--win', self.player_window_position, stream_url],
+        # hopefully by making the ala:hw:0,1 stuff dynamic this can use mix and use two omxplayer instances separately with audio
+        self.omx_player = subprocess.Popen(['omxplayer', '--fps', '60', '-o', 'alsa:hw:0,1', '--live', '--win', self.player_window_position, stream_url],
                                            stdin=subprocess.PIPE, universal_newlines=True)
 
     def set_audio_input_volume_camera(self, level):
@@ -156,6 +157,7 @@ class OmxAmcrestCamera(AmcrestCamera):
     def increase_alsa_volume(self):
         m = self.get_alsa_mixer()
         vol = m.getvolume()[0]
+        logger.debug('INCREASING VOLUME!!!!')
         if vol <= 95:
             m.setvolume(vol + 5)
         else:
@@ -383,6 +385,9 @@ class MonitorUI(App):
             except Exception as e:
                 logger.exception(e)
             else:
+                # TODO: This is a temp hack.  stop doing this.
+                m = camera.get_alsa_mixer()
+                m.setvolume(80)
                 cameras.append(camera)
 
         return cameras
