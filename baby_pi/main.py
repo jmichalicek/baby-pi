@@ -99,9 +99,14 @@ class OmxAmcrestCamera(AmcrestCamera):
         # self.omx_player.wait()
         # self.omx_player.kill()
         try:
-            self.omx_player.communicate(input='q')
-        except ValueError:
+            self.omx_player.communicate(input='q', timeout=1)
+        except ValueError as e:
+            print('Got ValueError! %s' % e)
+            self.omx_player.terminate()
             pass
+        except subprocess.TimeoutExpired as e:
+            logger.debug('Timeout expired for %s, terminating' % self.omx_player)
+            self.omx_player.terminate()
 
     def create_omx_player_process(self):
         stream_url = self.camera.rtsp_url(channelno=1, typeno=1)
